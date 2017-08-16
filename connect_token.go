@@ -32,7 +32,11 @@ func NewConnectToken() *ConnectToken {
 // This will also write and encrypt the private token
 func (token *ConnectToken) Generate(clientId uint64, serverAddrs []net.UDPAddr, versionInfo string, protocolId uint64, expireSeconds uint64, timeoutSeconds int32, sequence uint64, userData, privateKey []byte) error {
 	token.CreateTimestamp = uint64(time.Now().Unix())
-	token.ExpireTimestamp = token.CreateTimestamp + (expireSeconds * 1000)
+	if expireSeconds >= 0 {
+		token.ExpireTimestamp = token.CreateTimestamp + expireSeconds
+	} else {
+		token.ExpireTimestamp = 0xFFFFFFFFFFFFFFFF
+	}
 	token.TimeoutSeconds = timeoutSeconds
 	token.VersionInfo = []byte(VERSION_INFO)
 	token.ProtocolId = protocolId

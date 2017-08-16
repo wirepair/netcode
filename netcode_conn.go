@@ -64,7 +64,11 @@ func (c *NetcodeConn) Close() error {
 		close(c.closeCh)
 	}
 	c.isClosed = true
-	return c.conn.Close()
+
+	if c.conn != nil {
+		return c.conn.Close()
+	}
+	return nil
 }
 
 func (c *NetcodeConn) SetReadBuffer(bytes int) {

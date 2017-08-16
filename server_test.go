@@ -9,16 +9,18 @@ import (
 type SendFunc func(serv *Server, payload []byte, serverTime float64)
 
 func TestServerListen(t *testing.T) {
+	port := 40000
 	doneCh := make(chan struct{})
-	go runTestServer(testSendFunc, doneCh, t)
-	go runTestClient(t)
+	go runTestServer(port, testSendFunc, doneCh, t)
+	go runTestClient(port, t)
 	<-doneCh
 }
 
 func TestServerSendPayloadToClient(t *testing.T) {
+	port := 40001
 	doneCh := make(chan struct{})
-	go runTestServer(testSendToClientFunc, doneCh, t)
-	go runTestClient(t)
+	go runTestServer(port, testSendToClientFunc, doneCh, t)
+	go runTestClient(port, t)
 	<-doneCh
 }
 
@@ -39,9 +41,9 @@ func testSendToClientFunc(serv *Server, payload []byte, serverTime float64) {
 	}
 }
 
-func runTestServer(sendFunc SendFunc, doneCh chan struct{}, t *testing.T) {
+func runTestServer(port int, sendFunc SendFunc, doneCh chan struct{}, t *testing.T) {
 	maxClients := 32
-	addr := net.UDPAddr{IP: net.ParseIP("::1"), Port: 40000}
+	addr := net.UDPAddr{IP: net.ParseIP("::1"), Port: port}
 	serv := NewServer(&addr, TEST_PRIVATE_KEY, TEST_PROTOCOL_ID, maxClients)
 	if err := serv.Init(); err != nil {
 		t.Fatalf("error initializing server: %s\n", err)
@@ -91,8 +93,8 @@ func runTestServer(sendFunc SendFunc, doneCh chan struct{}, t *testing.T) {
 	}
 }
 
-func runTestClient(t *testing.T) {
-	server := net.UDPAddr{IP: net.ParseIP("::1"), Port: 40000}
+func runTestClient(port int, t *testing.T) {
+	server := net.UDPAddr{IP: net.ParseIP("::1"), Port: port}
 	servers := make([]net.UDPAddr, 1)
 	servers[0] = server
 

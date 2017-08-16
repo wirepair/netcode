@@ -6,14 +6,26 @@ import (
 	"testing"
 )
 
+const (
+	TEST_PROTOCOL_ID          = 0x1122334455667788
+	TEST_CONNECT_TOKEN_EXPIRY = 30
+	TEST_SERVER_PORT          = 40000
+	TEST_CLIENT_ID            = 0x1
+	TEST_SEQUENCE_START       = 1000
+	TEST_TIMEOUT_SECONDS      = 15
+)
+
+var TEST_PRIVATE_KEY = []byte{0x60, 0x6a, 0xbe, 0x6e, 0xc9, 0x19, 0x10, 0xea,
+	0x9a, 0x65, 0x62, 0xf6, 0x6f, 0x2b, 0x30, 0xe4,
+	0x43, 0x71, 0xd6, 0x2c, 0xd1, 0x99, 0x27, 0x26,
+	0x6b, 0x3c, 0x60, 0xf4, 0xb7, 0x15, 0xab, 0xa1}
+
 func TestConnectToken(t *testing.T) {
 	var err error
 	var tokenBuffer []byte
 	var key []byte
 
-	server := net.UDPAddr{IP: net.ParseIP("127.0.0.1"), Port: 40000}
-	servers := make([]net.UDPAddr, 1)
-	servers[0] = server
+	servers := testServers()
 
 	if key, err = GenerateKey(); err != nil {
 		t.Fatalf("error generating key %s\n", key)
@@ -72,7 +84,6 @@ func TestConnectToken(t *testing.T) {
 	}
 
 	testComparePrivateTokens(inToken.PrivateData, outToken.PrivateData, t)
-
 }
 
 func testGenerateConnectToken(servers []net.UDPAddr, privateKey []byte, t *testing.T) *ConnectToken {
@@ -91,6 +102,13 @@ func testGenerateConnectToken(servers []net.UDPAddr, privateKey []byte, t *testi
 		t.Fatalf("error generating token: %s\n", err)
 	}
 	return connectToken
+}
+
+func testServers() []net.UDPAddr {
+	server := net.UDPAddr{IP: net.ParseIP("127.0.0.1"), Port: 40000}
+	servers := make([]net.UDPAddr, 1)
+	servers[0] = server
+	return servers
 }
 
 func testCompareTokens(token1, token2 *ConnectToken, t *testing.T) {

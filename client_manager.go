@@ -15,6 +15,7 @@ type connectTokenEntry struct {
 type encryptionEntry struct {
 	expireTime float64
 	lastAccess float64
+	timeout    int
 	address    *net.UDPAddr
 	sendKey    []byte
 	recvKey    []byte
