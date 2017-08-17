@@ -566,7 +566,7 @@ func validateSequence(packetLen int, prefixByte uint8, sequence uint64, readPack
 
 	// replay protection (optional)
 	if replayProtection != nil && PacketType(packetType) >= ConnectionKeepAlive {
-		if replayProtection.AlreadyReceived(sequence) == 1 {
+		if replayProtection.AlreadyReceived(sequence) {
 			v := strconv.FormatUint(sequence, 10)
 			return errors.New("ignored connection payload packet. sequence " + v + " already received (replay protection)")
 		}

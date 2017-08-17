@@ -21,13 +21,13 @@ func (r *ReplayProtection) Reset() {
 }
 
 // Tests that the sequence has not already been recv'd, adding it to the buffer if it's new.
-func (r *ReplayProtection) AlreadyReceived(sequence uint64) int {
+func (r *ReplayProtection) AlreadyReceived(sequence uint64) bool {
 	if sequence&(uint64(1<<63)) != 0 {
-		return 0
+		return false
 	}
 
 	if sequence+REPLAY_PROTECTION_BUFFER_SIZE <= r.MostRecentSequence {
-		return 1
+		return true
 	}
 
 	if sequence > r.MostRecentSequence {
@@ -38,15 +38,15 @@ func (r *ReplayProtection) AlreadyReceived(sequence uint64) int {
 
 	if r.ReceivedPacket[index] == 0xFFFFFFFFFFFFFFFF {
 		r.ReceivedPacket[index] = sequence
-		return 0
+		return false
 	}
 
 	if r.ReceivedPacket[index] >= sequence {
-		return 1
+		return true
 	}
 
 	r.ReceivedPacket[index] = sequence
-	return 0
+	return false
 }
 
 func clearPacketBuffer(packets []uint64) {
