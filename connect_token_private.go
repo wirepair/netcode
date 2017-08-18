@@ -1,7 +1,6 @@
 package netcode
 
 import (
-	"errors"
 	"net"
 )
 
@@ -64,7 +63,7 @@ func (p *ConnectTokenPrivate) Read() error {
 	}
 
 	if p.UserData, err = p.TokenData.GetBytes(USER_DATA_BYTES); err != nil {
-		return errors.New("error reading user data")
+		return ErrReadingUserData
 	}
 
 	return nil
@@ -83,18 +82,18 @@ func (p *ConnectTokenPrivate) Write() ([]byte, error) {
 }
 
 // Encrypts, in place, the TokenData buffer, assumes Write() has already been called.
-func (token *ConnectTokenPrivate) Encrypt(protocolId, expireTimestamp, sequence uint64, privateKey []byte) error {
+func (p *ConnectTokenPrivate) Encrypt(protocolId, expireTimestamp, sequence uint64, privateKey []byte) error {
 	additionalData, nonce := buildTokenCryptData(protocolId, expireTimestamp, sequence)
-	encBuf := token.TokenData.Buf[:CONNECT_TOKEN_PRIVATE_BYTES-MAC_BYTES]
+	encBuf := p.TokenData.Buf[:CONNECT_TOKEN_PRIVATE_BYTES-MAC_BYTES]
 	if err := EncryptAead(encBuf, additionalData, nonce, privateKey); err != nil {
 		return err
 	}
 
-	if len(token.TokenData.Buf) != CONNECT_TOKEN_PRIVATE_BYTES {
-		return errors.New("error in encrypt invalid token private byte size")
+	if len(p.TokenData.Buf) != CONNECT_TOKEN_PRIVATE_BYTES {
+		return ErrInvalidTokenPrivateByteSize
 	}
 
-	copy(token.mac, token.TokenData.Buf[CONNECT_TOKEN_PRIVATE_BYTES-MAC_BYTES:])
+	copy(p.mac, p.TokenData.Buf[CONNECT_TOKEN_PRIVATE_BYTES-MAC_BYTES:])
 	return nil
 }
 
@@ -104,7 +103,7 @@ func (p *ConnectTokenPrivate) Decrypt(protocolId, expireTimestamp, sequence uint
 	var err error
 
 	if len(p.TokenData.Buf) != CONNECT_TOKEN_PRIVATE_BYTES {
-		return nil, errors.New("error in decrypt invalid token private byte size")
+		return nil, ErrInvalidTokenPrivateByteSize
 	}
 
 	copy(p.mac, p.TokenData.Buf[CONNECT_TOKEN_PRIVATE_BYTES-MAC_BYTES:])

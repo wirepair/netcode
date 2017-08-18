@@ -1,7 +1,6 @@
 package netcode
 
 import (
-	"errors"
 	"log"
 	"net"
 )
@@ -47,14 +46,14 @@ func (c *NetcodeConn) SetRecvHandler(recvHandlerFn NetcodeRecvHandler) {
 
 func (c *NetcodeConn) Write(b []byte) (int, error) {
 	if c.isClosed {
-		return -1, errors.New("unable to write, socket has been closed")
+		return -1, ErrWriteClosedSocket
 	}
 	return c.conn.Write(b)
 }
 
 func (c *NetcodeConn) WriteTo(b []byte, to *net.UDPAddr) (int, error) {
 	if c.isClosed {
-		return -1, errors.New("unable to write, socket has been closed")
+		return -1, ErrWriteClosedSocket
 	}
 	return c.conn.WriteTo(b, to)
 }
@@ -93,7 +92,7 @@ func (c *NetcodeConn) Dial(address *net.UDPAddr) error {
 	var err error
 
 	if c.recvHandlerFn == nil {
-		return errors.New("packet handler must be set before calling listen")
+		return ErrPacketHandlerBeforeListen
 	}
 
 	c.closeCh = make(chan struct{})
@@ -108,7 +107,7 @@ func (c *NetcodeConn) Listen(address *net.UDPAddr) error {
 	var err error
 
 	if c.recvHandlerFn == nil {
-		return errors.New("packet handler must be set before calling listen")
+		return ErrPacketHandlerBeforeListen
 	}
 
 	c.conn, err = net.ListenUDP(address.Network(), address)
@@ -164,16 +163,16 @@ func (c *NetcodeConn) read() error {
 	}
 
 	if n == 0 {
-		return errors.New("socket error: 0 byte length recv'd")
+		return ErrSocketZeroRecv
 	}
 
 	if n > c.maxBytes {
-		return errors.New("packet size was > maxBytes")
+		return ErrPacketSizeMax
 	}
 
 	// check if it's a valid packet
 	if NewPacket(netData.data) == nil {
-		return errors.New("data was not a valid netcode.io packet")
+		return ErrInvalidPacket
 	}
 
 	netData.data = netData.data[:n]

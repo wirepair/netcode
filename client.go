@@ -1,7 +1,6 @@
 package netcode
 
 import (
-	"errors"
 	"log"
 	"net"
 	"time"
@@ -113,7 +112,7 @@ func (c *Client) Connect() error {
 
 	c.startTime = 0
 	if c.serverIndex > len(c.connectToken.ServerAddrs) {
-		return errors.New("invalid server address, exceeded # of servers")
+		return ErrExceededServerNumber
 	}
 
 	c.serverAddress = &c.connectToken.ServerAddrs[c.serverIndex]
@@ -274,7 +273,7 @@ func (c *Client) Disconnect(reason ClientState, sendDisconnect bool) error {
 
 func (c *Client) SendData(payloadData []byte) error {
 	if c.GetState() != StateConnected {
-		return errors.New("client not connected, unable to send packet")
+		return ErrClientNotConnected
 	}
 	p := NewPayloadPacket(payloadData)
 	return c.sendPacket(p)

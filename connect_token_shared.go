@@ -1,7 +1,7 @@
 package netcode
 
 import (
-	"errors"
+	"fmt"
 	"net"
 	"strconv"
 )
@@ -16,21 +16,21 @@ const (
 // This struct contains data that is shared in both public and private parts of the
 // connect token.
 type sharedTokenData struct {
-	TimeoutSeconds	int32	      // timeout in seconds. -1 means disable timeout (dev only).
-	ServerAddrs 	[]net.UDPAddr // list of server addresses this client may connect to
-	ClientKey   	[]byte        // client to server key
-	ServerKey   	[]byte        // server to client key
+	TimeoutSeconds int32         // timeout in seconds. -1 means disable timeout (dev only).
+	ServerAddrs    []net.UDPAddr // list of server addresses this client may connect to
+	ClientKey      []byte        // client to server key
+	ServerKey      []byte        // server to client key
 }
 
 func (shared *sharedTokenData) GenerateShared() error {
 	var err error
 
 	if shared.ClientKey, err = GenerateKey(); err != nil {
-		return errors.New("error generating client key: " + err.Error())
+		return fmt.Errorf("error generating client key: %s", err)
 	}
 
 	if shared.ServerKey, err = GenerateKey(); err != nil {
-		return errors.New("error generating server key: " + err.Error())
+		return fmt.Errorf("error generating server key: %s", err)
 	}
 	return nil
 }
@@ -52,11 +52,11 @@ func (shared *sharedTokenData) ReadShared(buffer *Buffer) error {
 	}
 
 	if servers <= 0 {
-		return errors.New("empty servers")
+		return ErrEmptyServers
 	}
 
 	if servers > MAX_SERVERS_PER_CONNECT {
-		return errors.New("too many servers")
+		return ErrTooManyServers
 	}
 
 	shared.ServerAddrs = make([]net.UDPAddr, servers)
@@ -84,14 +84,14 @@ func (shared *sharedTokenData) ReadShared(buffer *Buffer) error {
 				ipBytes[i+1] = byte(n)
 			}
 		} else {
-			return errors.New("unknown ip address")
+			return ErrUnknownIPAddress
 		}
 
 		ip := net.IP(ipBytes)
 
 		port, err := buffer.GetUint16()
 		if err != nil {
-			return errors.New("invalid port")
+			return ErrInvalidPort
 		}
 		shared.ServerAddrs[i] = net.UDPAddr{IP: ip, Port: int(port)}
 	}
@@ -115,12 +115,12 @@ func (shared *sharedTokenData) WriteShared(buffer *Buffer) error {
 	for _, addr := range shared.ServerAddrs {
 		host, port, err := net.SplitHostPort(addr.String())
 		if err != nil {
-			return errors.New("invalid port for host: " + addr.String())
+			return fmt.Errorf("invalid port for host: %s", addr)
 		}
 
 		parsed := net.ParseIP(host)
 		if parsed == nil {
-			return errors.New("invalid ip address")
+			return ErrInvalidIPAddress
 		}
 
 		parsedIpv4 := parsed.To4()

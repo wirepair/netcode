@@ -1,7 +1,7 @@
 package netcode
 
 import (
-	"errors"
+	"fmt"
 	"net"
 	"strings"
 	"time"
@@ -92,35 +92,35 @@ func ReadConnectToken(tokenBuffer []byte) (*ConnectToken, error) {
 	token := NewConnectToken()
 
 	if token.VersionInfo, err = buffer.GetBytes(VERSION_INFO_BYTES); err != nil {
-		return nil, errors.New("read connect token data has bad version info " + err.Error())
+		return nil, fmt.Errorf("read connect token data has bad version info %s", err)
 	}
 
 	if strings.Compare(VERSION_INFO, string(token.VersionInfo)) != 0 {
-		return nil, errors.New("read connect token data has bad version info: " + string(token.VersionInfo))
+		return nil, fmt.Errorf("read connect token data has bad version info: " + string(token.VersionInfo))
 	}
 
 	if token.ProtocolId, err = buffer.GetUint64(); err != nil {
-		return nil, errors.New("read connect token data has bad protocol id " + err.Error())
+		return nil, fmt.Errorf("read connect token data has bad protocol id %s", err)
 	}
 
 	if token.CreateTimestamp, err = buffer.GetUint64(); err != nil {
-		return nil, errors.New("read connect token data has bad create timestamp " + err.Error())
+		return nil, fmt.Errorf("read connect token data has bad create timestamp %s", err)
 	}
 
 	if token.ExpireTimestamp, err = buffer.GetUint64(); err != nil {
-		return nil, errors.New("read connect token data has bad expire timestamp " + err.Error())
+		return nil, fmt.Errorf("read connect token data has bad expire timestamp %s", err)
 	}
 
 	if token.CreateTimestamp > token.ExpireTimestamp {
-		return nil, errors.New("expire timestamp is > create timestamp")
+		return nil, ErrExpiredTokenTimestamp
 	}
 
 	if token.Sequence, err = buffer.GetUint64(); err != nil {
-		return nil, errors.New("read connect data has bad sequence " + err.Error())
+		return nil, fmt.Errorf("read connect data has bad sequence %s", err)
 	}
 
 	if privateData, err = buffer.GetBytes(CONNECT_TOKEN_PRIVATE_BYTES); err != nil {
-		return nil, errors.New("read connect data has bad private data " + err.Error())
+		return nil, fmt.Errorf("read connect data has bad private data %s", err)
 	}
 
 	// it is still encrypted at this point.
