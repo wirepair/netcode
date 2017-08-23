@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+
 	"github.com/wirepair/netcode"
 	//"github.com/pkg/profile"
 	"log"
@@ -172,7 +173,7 @@ func serveToken(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(webToken)
 }
 
-func connectTokenGenerator(clientId uint64, serverAddrs []net.UDPAddr, versionInfo string, protocolId uint64, tokenExpiry uint64, timeoutSeconds uint32, sequence uint64) ([]byte, error) {
+func connectTokenGenerator(clientId uint64, serverAddrs []net.UDPAddr, versionInfo string, protocolId uint64, tokenExpiry uint64, timeoutSeconds int32, sequence uint64) ([]byte, error) {
 	userData, err := netcode.RandomBytes(netcode.USER_DATA_BYTES)
 	if err != nil {
 		return nil, err
