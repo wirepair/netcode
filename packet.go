@@ -1,8 +1,7 @@
 package netcode
 
 import (
-	"errors"
-	"strconv"
+	"fmt"
 )
 
 const CONNECT_TOKEN_PRIVATE_BYTES = 1024
@@ -109,7 +108,7 @@ func (p *RequestPacket) Write(buf []byte, protocolId, sequence uint64, writePack
 	buffer.WriteUint64(p.ConnectTokenSequence)
 	buffer.WriteBytes(p.ConnectTokenData) // write the encrypted connection token private data
 	if buffer.Pos != 1+13+8+8+8+CONNECT_TOKEN_PRIVATE_BYTES {
-		return -1, errors.New("invalid buffer size written")
+		return -1, ErrInvalidBufferSize
 	}
 	return buffer.Pos, nil
 }
@@ -120,38 +119,38 @@ func (p *RequestPacket) Read(packetData []byte, packetLen int, protocolId, curre
 	var packetType uint8
 	packetBuffer := NewBufferFromRef(packetData)
 	if packetType, err = packetBuffer.GetUint8(); err != nil || PacketType(packetType) != ConnectionRequest {
-		return errors.New("invalid packet type")
+		return ErrInvalidPacket
 	}
 
 	if allowedPackets[0] == 0 {
-		return errors.New("ignored connection request packet. packet type is not allowed")
+		return ErrRequestPacketTypeNotAllowed
 	}
 
 	if packetLen != 1+VERSION_INFO_BYTES+8+8+8+CONNECT_TOKEN_PRIVATE_BYTES {
-		return errors.New("ignored connection request packet. bad packet length")
+		return ErrRequestBadPacketLength
 	}
 
 	if privateKey == nil {
-		return errors.New("ignored connection request packet. no private key\n")
+		return ErrRequestPacketNoPrivateKey
 	}
 
 	p.VersionInfo, err = packetBuffer.GetBytes(VERSION_INFO_BYTES)
 	if err != nil {
-		return errors.New("ignored connection request packet. bad version info invalid bytes returned\n")
+		return ErrRequestPacketBadVersionInfoBytes
 	}
 
 	if string(p.VersionInfo) != VERSION_INFO {
-		return errors.New("ignored connection request packet. bad version info did not match\n")
+		return ErrRequestPacketBadVersionInfo
 	}
 
 	p.ProtocolId, err = packetBuffer.GetUint64()
 	if err != nil || p.ProtocolId != protocolId {
-		return errors.New("ignored connection request packet. wrong protocol id\n")
+		return ErrRequestPacketBadProtocolId
 	}
 
 	p.ConnectTokenExpireTimestamp, err = packetBuffer.GetUint64()
 	if err != nil || p.ConnectTokenExpireTimestamp <= currentTimestamp {
-		return errors.New("ignored connection request packet. connect token expired\n")
+		return ErrRequestPacketConnectTokenExpired
 	}
 
 	p.ConnectTokenSequence, err = packetBuffer.GetUint64()
@@ -160,7 +159,7 @@ func (p *RequestPacket) Read(packetData []byte, packetLen int, protocolId, curre
 	}
 
 	if packetBuffer.Pos != 1+VERSION_INFO_BYTES+8+8+8 {
-		return errors.New("invalid length of packet buffer read")
+		return ErrRequestPacketBufferInvalidLength
 	}
 
 	var tokenBuffer []byte
@@ -171,11 +170,11 @@ func (p *RequestPacket) Read(packetData []byte, packetLen int, protocolId, curre
 
 	p.Token = NewConnectTokenPrivateEncrypted(tokenBuffer)
 	if _, err := p.Token.Decrypt(p.ProtocolId, p.ConnectTokenExpireTimestamp, p.ConnectTokenSequence, privateKey); err != nil {
-		return errors.New("error decrypting connect token private data: " + err.Error())
+		return fmt.Errorf("error decrypting connect token private data: %s", err)
 	}
 
 	if err := p.Token.Read(); err != nil {
-		return errors.New("error reading decrypted connect token private data: " + err.Error())
+		return fmt.Errorf("error reading decrypted connect token private data: %s", err)
 	}
 
 	return nil
@@ -215,7 +214,7 @@ func (p *DeniedPacket) Read(packetData []byte, packetLen int, protocolId, curren
 	p.sequence = sequence
 
 	if decryptedBuf.Len() != 0 {
-		return errors.New("ignored connection denied packet. decrypted packet data is wrong size")
+		return ErrDeniedPacketDecryptedDataSize
 	}
 	return nil
 }
@@ -258,17 +257,17 @@ func (p *ChallengePacket) Read(packetData []byte, packetLen int, protocolId, cur
 
 	p.sequence = sequence
 	if decryptedBuf.Len() != 8+CHALLENGE_TOKEN_BYTES {
-		return errors.New("ignored connection challenge packet. decrypted packet data is wrong size")
+		return ErrChallengePacketDecryptedDataSize
 	}
 
 	p.ChallengeTokenSequence, err = decryptedBuf.GetUint64()
 	if err != nil {
-		return errors.New("error reading challenge token sequence")
+		return ErrChallengePacketTokenSequence
 	}
 
 	p.ChallengeTokenData, err = decryptedBuf.GetBytes(CHALLENGE_TOKEN_BYTES)
 	if err != nil {
-		return errors.New("error reading challenge token data")
+		return ErrChallengePacketTokenData
 	}
 
 	return nil
@@ -312,17 +311,17 @@ func (p *ResponsePacket) Read(packetData []byte, packetLen int, protocolId, curr
 	p.sequence = sequence
 
 	if decryptedBuf.Len() != 8+CHALLENGE_TOKEN_BYTES {
-		return errors.New("ignored connection challenge response packet. decrypted packet data is wrong size")
+		return ErrResponsePacketDecryptedDataSize
 	}
 
 	p.ChallengeTokenSequence, err = decryptedBuf.GetUint64()
 	if err != nil {
-		return errors.New("error reading challenge token sequence")
+		return ErrResponsePacketTokenSequence
 	}
 
 	p.ChallengeTokenData, err = decryptedBuf.GetBytes(CHALLENGE_TOKEN_BYTES)
 	if err != nil {
-		return errors.New("error reading challenge token data")
+		return ErrResponsePacketTokenData
 	}
 
 	return nil
@@ -366,17 +365,17 @@ func (p *KeepAlivePacket) Read(packetData []byte, packetLen int, protocolId, cur
 	p.sequence = sequence
 
 	if decryptedBuf.Len() != 8 {
-		return errors.New("ignored connection keep alive packet. decrypted packet data is wrong size")
+		return ErrKeepAlivePacketDecryptedDataSize
 	}
 
 	p.ClientIndex, err = decryptedBuf.GetUint32()
 	if err != nil {
-		return errors.New("error reading keepalive client index")
+		return ErrKeepAlivePacketClientIndex
 	}
 
 	p.MaxClients, err = decryptedBuf.GetUint32()
 	if err != nil {
-		return errors.New("error reading keepalive max clients")
+		return ErrKeepAlivePacketMaxClients
 	}
 
 	return nil
@@ -431,11 +430,11 @@ func (p *PayloadPacket) Read(packetData []byte, packetLen int, protocolId, curre
 
 	decryptedSize := uint32(decryptedBuf.Len())
 	if decryptedSize < 1 {
-		return errors.New("ignored connection payload packet. payload is too small")
+		return ErrPayloadPacketTooSmall
 	}
 
 	if decryptedSize > MAX_PAYLOAD_BYTES {
-		return errors.New("ignored connection payload packet. payload is too large")
+		return ErrPayloadPacketTooLarge
 	}
 
 	p.PayloadBytes = decryptedSize
@@ -472,7 +471,7 @@ func (p *DisconnectPacket) Read(packetData []byte, packetLen int, protocolId, cu
 	p.sequence = sequence
 
 	if decryptedBuf.Len() != 0 {
-		return errors.New("ignored connection denied packet. decrypted packet data is wrong size")
+		return ErrDisconnectPacketDecryptedDataSize
 	}
 	return nil
 }
@@ -487,7 +486,7 @@ func decryptPacket(packetBuffer *Buffer, packetLen int, protocolId uint64, readP
 
 	prefixByte, err := packetBuffer.GetUint8()
 	if err != nil {
-		return 0, nil, errors.New("invalid buffer length")
+		return 0, nil, ErrInvalidBufferLength
 	}
 
 	if packetSequence, err = readSequence(packetBuffer, packetLen, prefixByte); err != nil {
@@ -503,17 +502,17 @@ func decryptPacket(packetBuffer *Buffer, packetLen int, protocolId uint64, readP
 
 	encryptedSize := packetLen - packetBuffer.Pos
 	if encryptedSize < MAC_BYTES {
-		return 0, nil, errors.New("ignored encrypted packet. encrypted payload is too small")
+		return 0, nil, ErrDecryptPacketPayloadTooSmall
 	}
 
 	encryptedBuff, err := packetBuffer.GetBytes(encryptedSize)
 	if err != nil {
-		return 0, nil, errors.New("ignored encrypted packet. encrypted payload is too small")
+		return 0, nil, ErrDecryptPacketPayloadTooSmall
 	}
 
 	decryptedBuff, err := DecryptAead(encryptedBuff, additionalData, nonce, readPacketKey)
 	if err != nil {
-		return 0, nil, errors.New("ignored encrypted packet. failed to decrypt: " + err.Error())
+		return 0, nil, fmt.Errorf("ignored encrypted packet. failed to decrypt: %s", err)
 	}
 
 	return packetSequence, NewBufferFromRef(decryptedBuff), nil
@@ -525,11 +524,11 @@ func readSequence(packetBuffer *Buffer, packetLen int, prefixByte uint8) (uint64
 
 	sequenceBytes := prefixByte >> 4
 	if sequenceBytes < 1 || sequenceBytes > 8 {
-		return 0, errors.New("ignored encrypted packet. sequence bytes is out of range [1,8]")
+		return 0, ErrEncryptedPacketSequenceOutOfRange
 	}
 
 	if packetLen < 1+int(sequenceBytes)+MAC_BYTES {
-		return 0, errors.New("ignored encrypted packet. buffer is too small for sequence bytes + encryption mac")
+		return 0, ErrEncryptedPacketBufferTooSmall
 	}
 
 	var i uint8
@@ -546,29 +545,27 @@ func readSequence(packetBuffer *Buffer, packetLen int, prefixByte uint8) (uint64
 
 // Validates the data prior to the encrypted segment before we bother attempting to decrypt.
 func validateSequence(packetLen int, prefixByte uint8, sequence uint64, readPacketKey, allowedPackets []byte, replayProtection *ReplayProtection) error {
-
 	if readPacketKey == nil {
-		return errors.New("empty packet key")
+		return ErrEmptyPacketKey
 	}
 
 	if packetLen < 1+1+MAC_BYTES {
-		return errors.New("ignored encrypted packet. packet is too small to be valid")
+		return ErrEncryptedPacketTooSmall
 	}
 
 	packetType := prefixByte & 0xF
 	if PacketType(packetType) >= ConnectionNumPackets {
-		return errors.New("ignored encrypted packet. packet type " + packetTypeMap[PacketType(packetType)] + " is invalid")
+		return fmt.Errorf("ignored encrypted packet. packet type %s is invalid", packetTypeMap[PacketType(packetType)])
 	}
 
 	if allowedPackets[packetType] == 0 {
-		return errors.New("ignored encrypted packet. packet type " + packetTypeMap[PacketType(packetType)] + " is invalid")
+		return fmt.Errorf("ignored encrypted packet. packet type %s is invalid", packetTypeMap[PacketType(packetType)])
 	}
 
 	// replay protection (optional)
 	if replayProtection != nil && PacketType(packetType) >= ConnectionKeepAlive {
 		if replayProtection.AlreadyReceived(sequence) {
-			v := strconv.FormatUint(sequence, 10)
-			return errors.New("ignored connection payload packet. sequence " + v + " already received (replay protection)")
+			return fmt.Errorf("ignored connection payload packet. sequence %d already received (replay protection)", sequence)
 		}
 	}
 	return nil
@@ -578,7 +575,7 @@ func validateSequence(packetLen int, prefixByte uint8, sequence uint64, readPack
 func writePacketPrefix(p Packet, buffer *Buffer, sequence uint64) (uint8, error) {
 	sequenceBytes := sequenceNumberBytesRequired(sequence)
 	if sequenceBytes < 1 || sequenceBytes > 8 {
-		return 0, errors.New("invalid sequence bytes, must be between [1-8]")
+		return 0, ErrInvalidSequenceBytes
 	}
 
 	prefixByte := uint8(p.GetType()) | uint8(sequenceBytes<<4)

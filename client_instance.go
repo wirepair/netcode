@@ -1,7 +1,7 @@
 package netcode
 
 import (
-	"errors"
+	"fmt"
 	"log"
 	"net"
 )
@@ -55,7 +55,7 @@ func (c *ClientInstance) SendPacket(packet Packet, writePacketKey []byte, server
 	var err error
 
 	if bytesWritten, err = packet.Write(c.packetData, c.protocolId, c.sequence, writePacketKey); err != nil {
-		return errors.New("error: unable to write packet: " + err.Error())
+		return fmt.Errorf("error: unable to write packet: %s", err)
 	}
 
 	if _, err := c.serverConn.WriteTo(c.packetData[:bytesWritten], c.address); err != nil {

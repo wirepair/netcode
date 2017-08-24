@@ -1,7 +1,7 @@
 package netcode
 
 import (
-	"errors"
+	"fmt"
 	"log"
 	"net"
 	"sync/atomic"
@@ -132,7 +132,7 @@ func (s *Server) SendPayloadToClient(clientId uint64, payloadData []byte, server
 
 func (s *Server) Update(time float64) error {
 	if !s.running {
-		return errors.New("server shutdown")
+		return ErrServerShutdown
 	}
 
 	s.serverTime = time
@@ -165,12 +165,12 @@ func (s *Server) DisconnectClient(clientId uint64, sendDisconnect bool, serverTi
 
 func (s *Server) getClientIndexByClientId(clientId uint64) (int, error) {
 	if !s.running {
-		return -1, errors.New("server is not running")
+		return -1, ErrServerNotRunning
 	}
 
 	clientIndex := s.clientManager.FindClientIndexById(clientId)
 	if clientIndex == -1 {
-		return -1, errors.New("unknown client id " + string(clientId))
+		return -1, fmt.Errorf("unknown client id %d", clientId)
 	}
 	return clientIndex, nil
 }
