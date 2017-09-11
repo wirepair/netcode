@@ -15,7 +15,7 @@ func TestConnectTokenPrivate(t *testing.T) {
 
 	currentTimestamp := uint64(time.Now().Unix())
 	expireTimestamp := uint64(currentTimestamp + TEST_CONNECT_TOKEN_EXPIRY)
-	timeoutSeconds := (int32) (10)
+	timeoutSeconds := (int32)(10)
 
 	userData, err := RandomBytes(USER_DATA_BYTES)
 	if err != nil {
