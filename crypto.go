@@ -2,6 +2,7 @@ package netcode
 
 import (
 	"crypto/rand"
+
 	"golang.org/x/crypto/chacha20poly1305"
 )
 
