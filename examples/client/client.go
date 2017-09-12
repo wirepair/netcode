@@ -4,13 +4,14 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"flag"
-	"github.com/wirepair/netcode"
 	"log"
 	"math/rand"
 	"net/http"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/wirepair/netcode"
 )
 
 var totalPayloadCount uint64

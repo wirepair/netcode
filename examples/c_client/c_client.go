@@ -2,13 +2,14 @@ package main
 
 import (
 	"flag"
-	"github.com/wirepair/netcode"
 	"log"
 	"math/rand"
 	"net"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/wirepair/netcode"
 )
 
 const (

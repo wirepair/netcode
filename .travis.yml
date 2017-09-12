@@ -1,0 +1,10 @@
+language: go
+
+go:
+    - 1.9
+
+install:
+    - make install-tools
+
+script:
+    - make ci-check
