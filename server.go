@@ -121,7 +121,7 @@ func (s *Server) SendPayloads(payloadData []byte, serverTime float64) {
 
 // Sends the payload to the client specified by their clientId.
 func (s *Server) SendPayloadToClient(clientId uint64, payloadData []byte, serverTime float64) error {
-	clientIndex, err := s.getClientIndexByClientId(clientId)
+	clientIndex, err := s.GetClientIndexByClientId(clientId)
 	if err != nil {
 		return err
 	}
@@ -154,7 +154,7 @@ DONE:
 
 // Disconnects a single client via the specified clientId
 func (s *Server) DisconnectClient(clientId uint64, sendDisconnect bool, serverTime float64) error {
-	clientIndex, err := s.getClientIndexByClientId(clientId)
+	clientIndex, err := s.GetClientIndexByClientId(clientId)
 	if err != nil {
 		return err
 	}
@@ -163,7 +163,7 @@ func (s *Server) DisconnectClient(clientId uint64, sendDisconnect bool, serverTi
 	return nil
 }
 
-func (s *Server) getClientIndexByClientId(clientId uint64) (int, error) {
+func (s *Server) GetClientIndexByClientId(clientId uint64) (int, error) {
 	if !s.running {
 		return -1, ErrServerNotRunning
 	}
