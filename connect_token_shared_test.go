@@ -7,6 +7,14 @@ import (
 )
 
 func TestReadWriteShared(t *testing.T) {
+	addrs := []string{"::1", "2001:db8::68", "127.0.0.1", "10.20.30.40"}
+
+	for _, addr := range addrs {
+		readWriteShared(t, addr)
+	}
+}
+
+func readWriteShared(t *testing.T, addr string) {
 	var err error
 	var clientKey []byte
 	var serverKey []byte
@@ -20,7 +28,7 @@ func TestReadWriteShared(t *testing.T) {
 		t.Fatalf("error generating server key")
 	}
 
-	server := net.UDPAddr{IP: net.ParseIP("::1"), Port: 40000}
+	server := net.UDPAddr{IP: net.ParseIP(addr), Port: 40000}
 	data := &sharedTokenData{}
 	data.TimeoutSeconds = 10
 	data.ServerAddrs = make([]net.UDPAddr, 1)
@@ -42,11 +50,11 @@ func TestReadWriteShared(t *testing.T) {
 	}
 
 	if !bytes.Equal(clientKey, outData.ClientKey) {
-		t.Fatalf("timeout seconds did not match expected %d\ngot:%d\n", data.TimeoutSeconds, outData.TimeoutSeconds)
+		t.Fatalf("timeout seconds did not match\nexpected: %d\ngot: %d\n", data.TimeoutSeconds, outData.TimeoutSeconds)
 	}
 
 	if !bytes.Equal(clientKey, outData.ClientKey) {
-		t.Fatalf("client key did not match expected %#v\ngot:%#v\n", clientKey, outData.ClientKey)
+		t.Fatalf("client key did not match\nexpected: %#v\ngot: %#v\n", clientKey, outData.ClientKey)
 	}
 
 	if !bytes.Equal(serverKey, outData.ServerKey) {
@@ -54,6 +62,6 @@ func TestReadWriteShared(t *testing.T) {
 	}
 
 	if !outData.ServerAddrs[0].IP.Equal(server.IP) {
-		t.Fatalf("server address did not match")
+		t.Fatalf("server address did not match\nexpected: %s\ngot: %s\n", server.IP, outData.ServerAddrs[0].IP)
 	}
 }

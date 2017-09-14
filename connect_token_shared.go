@@ -80,7 +80,7 @@ func (shared *sharedTokenData) ReadShared(buffer *Buffer) error {
 					return err
 				}
 				// decode little endian -> big endian for net.IP
-				ipBytes[i] = byte(n) << 8
+				ipBytes[i] = byte(n >> 8)
 				ipBytes[i+1] = byte(n)
 			}
 		} else {
@@ -135,7 +135,7 @@ func (shared *sharedTokenData) WriteShared(buffer *Buffer) error {
 				var n uint16
 				// net.IP is already big endian encoded, encode it to create little endian encoding.
 				n = uint16(parsed[i]) << 8
-				n = uint16(parsed[i+1])
+				n |= uint16(parsed[i+1])
 				buffer.WriteUint16(n)
 			}
 		}
