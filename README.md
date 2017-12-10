@@ -3,7 +3,7 @@
 Go implementation of netcode.io
 ===============================
 
-This is the main repository for the Go implementation of [netcode.io](https://netcode.io).
+This is the main repository for the Go implementation of [netcode.io](http://netcode.io).
 
 ## Dependencies
 The only dependency is [golang.org/x/crypto/chacha20poly1305](https://godoc.org/golang.org/x/crypto/chacha20poly1305) and it has been vendored so it should not be necessary to retrieve any packages outside of netcode.
