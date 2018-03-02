@@ -43,7 +43,7 @@ func testSendToClientFunc(serv *Server, payload []byte, serverTime float64) {
 
 func runTestServer(port int, sendFunc SendFunc, doneCh chan struct{}, t *testing.T) {
 	maxClients := 32
-	addr := net.UDPAddr{IP: net.ParseIP("::1"), Port: port}
+	addr := net.UDPAddr{IP: net.ParseIP("127.0.0.1"), Port: port}
 	serv := NewServer(&addr, TEST_PRIVATE_KEY, TEST_PROTOCOL_ID, maxClients)
 	if err := serv.Init(); err != nil {
 		t.Fatalf("error initializing server: %s\n", err)
@@ -94,7 +94,7 @@ func runTestServer(port int, sendFunc SendFunc, doneCh chan struct{}, t *testing
 }
 
 func runTestClient(port int, t *testing.T) {
-	server := net.UDPAddr{IP: net.ParseIP("::1"), Port: port}
+	server := net.UDPAddr{IP: net.ParseIP("127.0.0.1"), Port: port}
 	servers := make([]net.UDPAddr, 1)
 	servers[0] = server
 
