@@ -48,19 +48,19 @@ func TestConnectToken(t *testing.T) {
 	}
 
 	if inToken.ProtocolId != outToken.ProtocolId {
-		t.Fatalf("ProtocolId did not match expected: %s got: %s\n", inToken.ProtocolId, outToken.ProtocolId)
+		t.Fatalf("ProtocolId did not match expected: %v got: %v\n", inToken.ProtocolId, outToken.ProtocolId)
 	}
 
 	if inToken.CreateTimestamp != outToken.CreateTimestamp {
-		t.Fatalf("CreateTimestamp did not match expected: %s got: %s\n", inToken.CreateTimestamp, outToken.CreateTimestamp)
+		t.Fatalf("CreateTimestamp did not match expected: %v got: %v\n", inToken.CreateTimestamp, outToken.CreateTimestamp)
 	}
 
 	if inToken.ExpireTimestamp != outToken.ExpireTimestamp {
-		t.Fatalf("ExpireTimestamp did not match expected: %s got: %s\n", inToken.ExpireTimestamp, outToken.ExpireTimestamp)
+		t.Fatalf("ExpireTimestamp did not match expected: %v got: %v\n", inToken.ExpireTimestamp, outToken.ExpireTimestamp)
 	}
 
 	if inToken.Sequence != outToken.Sequence {
-		t.Fatalf("Sequence did not match expected: %s got: %s\n", inToken.Sequence, outToken.Sequence)
+		t.Fatalf("Sequence did not match expected: %v got: %v\n", inToken.Sequence, outToken.Sequence)
 	}
 
 	testCompareTokens(inToken, outToken, t)

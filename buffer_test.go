@@ -30,7 +30,7 @@ func TestBuffer_Copy(t *testing.T) {
 	}
 
 	if string(data) != "abcdefghij" {
-		t.Fatalf("error expeced: %s got %d\n", "abcdefghij", string(data))
+		t.Fatalf("error expeced: %v got %v\n", "abcdefghij", string(data))
 	}
 }
 

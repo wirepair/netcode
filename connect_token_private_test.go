@@ -102,7 +102,7 @@ func testCompareAddrs(addr1, addr2 net.UDPAddr, t *testing.T) {
 	}
 
 	if addr1.Port != addr2.Port {
-		t.Fatalf("server ports did not match: expected %s got %s\n", addr1.Port, addr2.Port)
+		t.Fatalf("server ports did not match: expected %v got %v\n", addr1.Port, addr2.Port)
 	}
 
 }
