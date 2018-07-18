@@ -115,7 +115,7 @@ func (shared *sharedTokenData) WriteShared(buffer *Buffer) error {
 	for _, addr := range shared.ServerAddrs {
 		host, port, err := net.SplitHostPort(addr.String())
 		if err != nil {
-			return fmt.Errorf("invalid port for host: %s", addr)
+			return fmt.Errorf("invalid port for host: %v", addr)
 		}
 
 		parsed := net.ParseIP(host)
