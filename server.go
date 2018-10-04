@@ -106,7 +106,12 @@ func (s *Server) Init() error {
 func (s *Server) Listen() error {
 	s.running = true
 
-	if err := s.serverConn.Listen(s.serverAddr); err != nil {
+	addr := &net.UDPAddr{
+		Port: s.serverAddr.Port,
+		IP:   net.ParseIP("0.0.0.0"),
+	}
+
+	if err := s.serverConn.Listen(addr); err != nil {
 		return err
 	}
 	return nil
