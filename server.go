@@ -112,21 +112,21 @@ func (s *Server) Listen() error {
 	return nil
 }
 
-func (s *Server) SendPayloads(payloadData []byte, serverTime float64) {
+func (s *Server) SendPayloads(payloadData []byte) {
 	if !s.running {
 		return
 	}
-	s.clientManager.sendPayloads(payloadData, serverTime)
+	s.clientManager.sendPayloads(payloadData, s.serverTime)
 }
 
 // Sends the payload to the client specified by their clientId.
-func (s *Server) SendPayloadToClient(clientId uint64, payloadData []byte, serverTime float64) error {
+func (s *Server) SendPayloadToClient(clientId uint64, payloadData []byte) error {
 	clientIndex, err := s.GetClientIndexByClientId(clientId)
 	if err != nil {
 		return err
 	}
 
-	s.clientManager.sendPayloadToInstance(clientIndex, payloadData, serverTime)
+	s.clientManager.sendPayloadToInstance(clientIndex, payloadData, s.serverTime)
 	return nil
 }
 
@@ -153,13 +153,13 @@ DONE:
 }
 
 // Disconnects a single client via the specified clientId
-func (s *Server) DisconnectClient(clientId uint64, sendDisconnect bool, serverTime float64) error {
+func (s *Server) DisconnectClient(clientId uint64, sendDisconnect bool) error {
 	clientIndex, err := s.GetClientIndexByClientId(clientId)
 	if err != nil {
 		return err
 	}
 
-	s.clientManager.DisconnectClient(clientIndex, sendDisconnect, serverTime)
+	s.clientManager.DisconnectClient(clientIndex, sendDisconnect, s.serverTime)
 	return nil
 }
 
