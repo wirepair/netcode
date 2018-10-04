@@ -131,7 +131,7 @@ func serveLoop(closeCh chan struct{}, ctrlCloseCh chan os.Signal, index int) {
 		// do simulation/process payload packets
 
 		// send payloads to clients
-		serv.SendPayloads(payload, serverTime)
+		serv.SendPayloads(payload)
 
 		time.Sleep(deltaTime)
 		serverTime += deltaTime.Seconds()
