@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type SendFunc func(serv *Server, payload []byte, serverTime float64)
+type SendFunc func(serv *Server, payload []byte)
 
 func TestServerListen(t *testing.T) {
 	port := 40000
@@ -25,18 +25,18 @@ func TestServerSendPayloadToClient(t *testing.T) {
 }
 
 // Tests sending payloads to all connected clients
-func testSendFunc(serv *Server, payload []byte, serverTime float64) {
+func testSendFunc(serv *Server, payload []byte) {
 	// send payloads to clients
-	serv.SendPayloads(payload, serverTime)
+	serv.SendPayloads(payload)
 }
 
 // Tests sending to individual clients via their ClientIds
-func testSendToClientFunc(serv *Server, payload []byte, serverTime float64) {
+func testSendToClientFunc(serv *Server, payload []byte) {
 	// do simulation/process payload packets
 	clientIds := serv.GetConnectedClientIds()
 	if len(clientIds) > 0 {
 		for _, clientId := range clientIds {
-			serv.SendPayloadToClient(clientId, payload, serverTime)
+			serv.SendPayloadToClient(clientId, payload)
 		}
 	}
 }
@@ -85,7 +85,7 @@ func runTestServer(port int, sendFunc SendFunc, doneCh chan struct{}, t *testing
 
 		// send payloads to clients
 		//sendFunc(serv, payload, serverTime)
-		serv.SendPayloads(payload, serverTime)
+		serv.SendPayloads(payload)
 
 		time.Sleep(deltaTime)
 		serverTime += deltaTime.Seconds()
