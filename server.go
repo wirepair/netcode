@@ -299,15 +299,18 @@ func (s *Server) processConnectionRequest(packet Packet, addr *net.UDPAddr) {
 	clientIndex := s.clientManager.FindClientIndexByAddress(addr)
 	if clientIndex != -1 {
 		log.Printf("server ignored connection request. a client with this address is already connected\n")
+		return
 	}
 
 	clientIndex = s.clientManager.FindClientIndexById(requestPacket.Token.ClientId)
 	if clientIndex != -1 {
 		log.Printf("server ignored connection request. a client with this id has already been used\n")
+		return
 	}
 
 	if !s.clientManager.FindOrAddTokenEntry(requestPacket.Token.Mac(), addr, s.serverTime) {
 		log.Printf("server ignored connection request. connect token has already been used\n")
+		return
 	}
 
 	if s.clientManager.ConnectedClientCount() == s.maxClients {
@@ -379,14 +382,17 @@ func (s *Server) processConnectionResponse(clientIndex, encryptionIndex int, pac
 	sendKey := s.clientManager.GetEncryptionEntrySendKey(encryptionIndex)
 	if sendKey == nil {
 		log.Printf("server ignored connection response. no packet send key\n")
+		return
 	}
 
 	if s.clientManager.FindClientIndexByAddress(addr) != -1 {
 		log.Printf("server ignored connection response. a client with this address is already connected")
+		return
 	}
 
 	if s.clientManager.FindClientIndexById(challengeToken.ClientId) != -1 {
 		log.Printf("server ignored connection response. a client with this id is already connected")
+		return
 	}
 
 	if s.clientManager.ConnectedClientCount() == s.maxClients {
