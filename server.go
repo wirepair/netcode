@@ -448,7 +448,6 @@ func (s *Server) sendKeepAlive(client *ClientInstance) {
 
 	if !s.clientManager.TouchEncryptionEntry(client.encryptionIndex, client.address, s.serverTime) {
 		log.Printf("error: encryption mapping is out of date for client %d encIndex: %d addr: %s\n", clientIndex, client.encryptionIndex, client.address.String())
-		panic("bloop")
 		return
 	}
 
