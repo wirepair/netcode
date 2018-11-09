@@ -475,6 +475,16 @@ func (s *Server) HasClients() int {
 	return s.clientManager.ConnectedClientCount()
 }
 
+func (s *Server) GetClientUserData(clientId uint64) ([]byte, error) {
+	i, err := s.GetClientIndexByClientId(clientId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return s.clientManager.instances[i].userData, nil
+}
+
 func (s *Server) Stop() error {
 	if !s.running {
 		return nil
