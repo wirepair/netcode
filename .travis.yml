@@ -3,6 +3,9 @@ language: go
 go:
     - 1.11.x
 
+env:
+    - GO111MODULES=on
+
 install:
     - make install-tools
 
